@@ -72,6 +72,7 @@ module Axlsx
     class CustomFilter
       include Axlsx::OptionsParser
 
+      # TODO: handle cases where we need to parse the val for `*` (:contains, :starts_with?, :ends_with?)
       OPERATOR_MAP = {
         "equal" => :==,
         "greaterThan" => :>,
@@ -105,7 +106,7 @@ module Axlsx
       # Serializes the custom_filter object
       # @param [String] str The string to concat the serialization information to.
       def to_xml_string(str = '')
-        str << "<customFilter operator='#{@operator}' val='#{@val.to_s}'"
+        str << "<customFilter operator='#{@operator}' val='#{@val.to_s}' />"
       end
     end
   end
