@@ -7,7 +7,7 @@ module Axlsx
     # @param [Hash] options Options used to set this objects attributes and
     #                       create custom_filter_items.
     # @option [Boolean] and @see and.
-    # @option [Array] custom_filter_items An array of values that will be used to create custom_filter objects. TODO
+    # @option [Array] custom_filter_items An array of values that will be used to create custom_filter objects.
     # @note The recommended way to interact with custom_filter objects is via AutoFilter#add_column
     # @example
     #   ws.auto_filter.add_column(
@@ -20,6 +20,7 @@ module Axlsx
     #     ]
     #   )
     def initialize(options={})
+      @and = false
       parse_options options
     end
 
@@ -35,11 +36,11 @@ module Axlsx
       if logical_and
         # false = show because it matched all criteria
         # true = hide because it failed to match one or both criteria
-        return custom_filter_items.any? { |custom_filter| custom_filter.apply(cell) }
+        return custom_filter_items.all? { |custom_filter| custom_filter.apply(cell) }
       else
         # false = show because it matched at least one criteria
         # true = hide because it didn't match any criteria
-        return custom_filter_items.none? { |custom_filter| custom_filter.apply(cell) }
+        return custom_filter_items.any? { |custom_filter| custom_filter.apply(cell) }
       end
 
       true
@@ -65,40 +66,55 @@ module Axlsx
 
     def custom_filter_items=(values)
       values.each do |value|
-        custom_filter_items << CustomFilter.new(value)
+        if value[:operator] == "between"
+          custom_filter_items << CustomFilter.new(comparator: "greaterThanOrEqual", operator: "greaterThanOrEqual", val: value[:val][0])
+          custom_filter_items << CustomFilter.new(comparator: "lessThanOrEqual", operator: "lessThanOrEqual", val: value[:val][1])
+        else
+          custom_filter_items << CustomFilter.new(value)
+        end
       end
     end
 
     class CustomFilter
       include Axlsx::OptionsParser
 
-      # TODO: handle cases where we need to parse the val for `*` (:contains, :starts_with?, :ends_with?)
-      OPERATOR_MAP = {
-        "equal" => :==,
-        "greaterThan" => :>,
-        "greaterThanOrEqual" => :>=,
+      COMPARATOR_MAP = {
         "lessThan" => :<,
         "lessThanOrEqual" => :<=,
+        "equal" => :==,
         "notEqual" => :!=,
+        "greaterThanOrEqual" => :>=,
+        "greaterThan" => :>,
+        "contains" => :include?,
+        "notContains" => :exclude?,
+        "beginsWith" => :starts_with?,
+        "endsWith" => :ends_with?,
       }
+      OPERATORS = ["equal", "greaterThan", "greaterThanOrEqual", "lessThan", "lessThanOrEqual", "notEqual"]
 
       def initialize(options={})
+        raise ArgumentError, "You must specify a comparator for the custom filter" unless options[:comparator]
         raise ArgumentError, "You must specify an operator for the custom filter" unless options[:operator]
-        raise ArgumentError, "You must specify a val for the custom filter" unless options[:val]
         parse_options options
       end
 
+      attr_reader :comparator
       attr_reader :operator
       attr_accessor :val
 
       def operator=(operation_type)
-        RestrictionValidator.validate "CustomFilter.operator", OPERATOR_MAP.keys, operation_type
+        RestrictionValidator.validate "CustomFilter.operator", OPERATORS, operation_type
         @operator = operation_type
+      end
+
+      def comparator=(comparator_type)
+        RestrictionValidator.validate "CustomFilter.comparator", COMPARATOR_MAP.keys, comparator_type
+        @comparator = comparator_type
       end
 
       def apply(cell)
         return false unless cell
-        return false if cell.value.send(OPERATOR_MAP[operator], val)
+        return false if cell.value.send(COMPARATOR_MAP[comparator], val)
 
         true
       end
@@ -106,7 +122,17 @@ module Axlsx
       # Serializes the custom_filter object
       # @param [String] str The string to concat the serialization information to.
       def to_xml_string(str = '')
-        str << "<customFilter operator='#{@operator}' val='#{@val.to_s}' />"
+        str << "<customFilter operator='#{@operator}' val='#{leading_wildcard + @val.to_s + trailing_wildcard}' />"
+      end
+
+      private
+
+      def leading_wildcard
+        ["contains", "notContains", "endsWith"].include?(comparator) ? "*" : ""
+      end
+
+      def trailing_wildcard
+        ["contains", "notContains", "beginsWith"].include?(comparator) ? "*" : ""
       end
     end
   end
