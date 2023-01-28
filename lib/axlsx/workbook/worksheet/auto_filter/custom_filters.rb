@@ -26,26 +26,6 @@ module Axlsx
 
     serializable_attributes :and
 
-    # Tells us if the row of the cell provided should be hidden as it
-    # does not meet any or all (based on the logical_and boolean) of
-    # the specified custom_filter_items restrictions .
-    # @param [Cell] cell The cell to test against items
-    def apply(cell)
-      return false unless cell
-
-      if logical_and
-        # false = show because it matched all criteria
-        # true = hide because it failed to match one or both criteria
-        return custom_filter_items.all? { |custom_filter| custom_filter.apply(cell) }
-      else
-        # false = show because it matched at least one criteria
-        # true = hide because it didn't match any criteria
-        return custom_filter_items.any? { |custom_filter| custom_filter.apply(cell) }
-      end
-
-      true
-    end
-
     attr_reader :and
     alias_method :logical_and, :and
 
@@ -54,6 +34,22 @@ module Axlsx
       @and = bool
     end
 
+    # Tells us if the row of the cell provided should be hidden as it
+    # does not meet any or all (based on the logical_and boolean) of
+    # the specified custom_filter_items restrictions.
+    # @param [Cell] cell The cell to test against items
+    def apply(cell)
+      return false unless cell
+
+      if logical_and
+        custom_filter_items.all? { |custom_filter| custom_filter.apply(cell) }
+      else
+        custom_filter_items.any? { |custom_filter| custom_filter.apply(cell) }
+      end
+    end
+
+    # Serialize the object to xml
+    # @param [String] str The string to concat the serialization information to.
     def to_xml_string(str = '')
       str << "<customFilters #{serialized_attributes}>"
       custom_filter_items.each { |custom_filter| custom_filter.to_xml_string(str) }
@@ -82,6 +78,7 @@ module Axlsx
         "lessThan" => :<,
         "lessThanOrEqual" => :<=,
         "equal" => :==,
+        "notBlank" => :!=,
         "notEqual" => :!=,
         "greaterThanOrEqual" => :>=,
         "greaterThan" => :>,
@@ -122,13 +119,21 @@ module Axlsx
       # Serializes the custom_filter object
       # @param [String] str The string to concat the serialization information to.
       def to_xml_string(str = '')
-        str << "<customFilter operator='#{@operator}' val='#{leading_wildcard + @val.to_s + trailing_wildcard}' />"
+        str << "<customFilter operator=\"#{@operator}\" val=\"#{leading_wildcard + safe_val + trailing_wildcard}\" />"
       end
 
       private
 
       def leading_wildcard
         ["contains", "notContains", "endsWith"].include?(comparator) ? "*" : ""
+      end
+
+      def safe_val
+        if comparator == "notBlank" && @val.nil?
+          " "
+        else
+          @val.to_s
+        end
       end
 
       def trailing_wildcard
