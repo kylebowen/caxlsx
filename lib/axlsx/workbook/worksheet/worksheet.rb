@@ -626,10 +626,15 @@ module Axlsx
       auto_filter.apply if auto_filter.range
       str << '<?xml version="1.0" encoding="UTF-8"?>'
       str << worksheet_node
+      auto_filter.to_xml_string(str) unless skip_serialize_auto_filter?
       serializable_parts.each do |item|
         item.to_xml_string(str) if item
       end
       str << '</worksheet>'
+    end
+
+    def skip_serialize_auto_filter?
+      tables.any? { |table| table.auto_filter == auto_filter }
     end
 
     # The worksheet relationships. This is managed automatically by the worksheet
@@ -748,10 +753,10 @@ module Axlsx
     def serializable_parts
       [sheet_pr, dimension, sheet_view, sheet_format_pr, column_info,
        sheet_data, sheet_calc_pr, @sheet_protection, protected_ranges,
-       auto_filter, merged_cells, conditional_formattings,
-       data_validations, hyperlinks, print_options, page_margins,
-       page_setup, header_footer, row_breaks, col_breaks, worksheet_drawing, worksheet_comments,
-       tables]
+       merged_cells, conditional_formattings, data_validations,
+       hyperlinks, print_options, page_margins, page_setup,
+       header_footer, row_breaks, col_breaks, worksheet_drawing,
+       worksheet_comments, tables]
     end
 
     def range(*cell_def)
