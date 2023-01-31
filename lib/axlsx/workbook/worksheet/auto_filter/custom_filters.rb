@@ -124,7 +124,7 @@ module Axlsx
 
       def apply(cell)
         return false unless cell
-        return false if cell.value.send(COMPARATOR_METHOD_MAP[operator], val)
+        return false if cell.value.send(COMPARATOR_METHOD_MAP[@operator], val)
 
         true
       end
@@ -132,17 +132,17 @@ module Axlsx
       # Serializes the custom_filter object
       # @param [String] str The string to concat the serialization information to.
       def to_xml_string(str = '')
-        str << "<customFilter operator=\"#{VALID_OPERATOR_MAP[operator]}\" val=\"#{leading_wildcard + safe_val + trailing_wildcard}\" />"
+        str << "<customFilter operator=\"#{VALID_OPERATOR_MAP[@operator]}\" val=\"#{leading_wildcard + safe_val + trailing_wildcard}\" />"
       end
 
       private
 
       def leading_wildcard
-        ["contains", "notContains", "endsWith"].include?(operator) ? "*" : ""
+        ["contains", "notContains", "endsWith"].include?(@operator) ? "*" : ""
       end
 
       def safe_val
-        if operator == "notBlank" && val.nil?
+        if @operator == "notBlank" && val.nil?
           " "
         else
           val.to_s
@@ -150,7 +150,7 @@ module Axlsx
       end
 
       def trailing_wildcard
-        ["contains", "notContains", "beginsWith"].include?(operator) ? "*" : ""
+        ["contains", "notContains", "beginsWith"].include?(@operator) ? "*" : ""
       end
     end
   end
