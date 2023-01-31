@@ -74,44 +74,57 @@ module Axlsx
     class CustomFilter
       include Axlsx::OptionsParser
 
-      COMPARATOR_MAP = {
-        "lessThan" => :<,
-        "lessThanOrEqual" => :<=,
-        "equal" => :==,
-        "notBlank" => :!=,
-        "notEqual" => :!=,
+      COMPARATOR_METHOD_MAP = {
+        "lessThan"           => :<,
+        "lessThanOrEqual"    => :<=,
+        "equal"              => :==,
+        "notBlank"           => :!=,
+        "notEqual"           => :!=,
         "greaterThanOrEqual" => :>=,
-        "greaterThan" => :>,
-        "contains" => :include?,
-        "notContains" => :exclude?,
-        "beginsWith" => :starts_with?,
-        "endsWith" => :ends_with?,
+        "greaterThan"        => :>,
+        "contains"           => :include?,
+        "notContains"        => :exclude?,
+        "beginsWith"         => :starts_with?,
+        "endsWith"           => :ends_with?,
       }
-      OPERATORS = ["equal", "greaterThan", "greaterThanOrEqual", "lessThan", "lessThanOrEqual", "notEqual"]
+      VALID_OPERATOR_MAP = {
+        "lessThan"           => "lessThan",
+        "lessThanOrEqual"    => "lessThanOrEqual",
+        "equal"              => "equal",
+        "notBlank"           => "notEqual",
+        "notEqual"           => "notEqual",
+        "greaterThanOrEqual" => "greaterThanOrEqual",
+        "greaterThan"        => "greaterThan",
+        "contains"           => "equal",
+        "notContains"        => "notEqual",
+        "beginsWith"         => "equal",
+        "endsWith"           => "equal",
+      }
 
       def initialize(options={})
-        raise ArgumentError, "You must specify a comparator for the custom filter" unless options[:comparator]
+        # raise ArgumentError, "You must specify a comparator for the custom filter" unless options[:comparator]
         raise ArgumentError, "You must specify an operator for the custom filter" unless options[:operator]
         parse_options options
       end
 
-      attr_reader :comparator
+      # attr_reader :comparator
       attr_reader :operator
       attr_accessor :val
 
       def operator=(operation_type)
-        RestrictionValidator.validate "CustomFilter.operator", OPERATORS, operation_type
+        RestrictionValidator.validate "CustomFilter.operator", VALID_OPERATOR_MAP.keys, operation_type
+        RestrictionValidator.validate "CustomFilter.comparator_method", COMPARATOR_METHOD_MAP.keys, operation_type
         @operator = operation_type
       end
 
-      def comparator=(comparator_type)
-        RestrictionValidator.validate "CustomFilter.comparator", COMPARATOR_MAP.keys, comparator_type
-        @comparator = comparator_type
-      end
+      # def comparator=(comparator_type)
+      #   RestrictionValidator.validate "CustomFilter.comparator", COMPARATOR_MAP.keys, comparator_type
+      #   @comparator = comparator_type
+      # end
 
       def apply(cell)
         return false unless cell
-        return false if cell.value.send(COMPARATOR_MAP[comparator], val)
+        return false if cell.value.send(COMPARATOR_METHOD_MAP[operator], val)
 
         true
       end
@@ -119,25 +132,25 @@ module Axlsx
       # Serializes the custom_filter object
       # @param [String] str The string to concat the serialization information to.
       def to_xml_string(str = '')
-        str << "<customFilter operator=\"#{@operator}\" val=\"#{leading_wildcard + safe_val + trailing_wildcard}\" />"
+        str << "<customFilter operator=\"#{VALID_OPERATOR_MAP[operator]}\" val=\"#{leading_wildcard + safe_val + trailing_wildcard}\" />"
       end
 
       private
 
       def leading_wildcard
-        ["contains", "notContains", "endsWith"].include?(comparator) ? "*" : ""
+        ["contains", "notContains", "endsWith"].include?(operator) ? "*" : ""
       end
 
       def safe_val
-        if comparator == "notBlank" && @val.nil?
+        if operator == "notBlank" && val.nil?
           " "
         else
-          @val.to_s
+          val.to_s
         end
       end
 
       def trailing_wildcard
-        ["contains", "notContains", "beginsWith"].include?(comparator) ? "*" : ""
+        ["contains", "notContains", "beginsWith"].include?(operator) ? "*" : ""
       end
     end
   end
