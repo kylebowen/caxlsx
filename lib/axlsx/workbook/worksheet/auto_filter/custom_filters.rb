@@ -102,12 +102,10 @@ module Axlsx
       }
 
       def initialize(options={})
-        # raise ArgumentError, "You must specify a comparator for the custom filter" unless options[:comparator]
         raise ArgumentError, "You must specify an operator for the custom filter" unless options[:operator]
         parse_options options
       end
 
-      # attr_reader :comparator
       attr_reader :operator
       attr_accessor :val
 
@@ -116,11 +114,6 @@ module Axlsx
         RestrictionValidator.validate "CustomFilter.comparator_method", COMPARATOR_METHOD_MAP.keys, operation_type
         @operator = operation_type
       end
-
-      # def comparator=(comparator_type)
-      #   RestrictionValidator.validate "CustomFilter.comparator", COMPARATOR_MAP.keys, comparator_type
-      #   @comparator = comparator_type
-      # end
 
       def apply(cell)
         return false unless cell
