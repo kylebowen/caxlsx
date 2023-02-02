@@ -309,9 +309,4 @@ module Axlsx
   def self.validate_marker_symbol(v)
     RestrictionValidator.validate :marker_symbol, [:default, :circle, :dash, :diamond, :dot, :picture, :plus, :square, :star, :triangle, :x], v
   end
-
-  def self.validate_custom_filter_operator(v)
-    # TODO: find and list all valid options in array
-    RestrictionValidator.validate :custom_filter_operator, [], v
-  end
 end
