@@ -2,11 +2,12 @@ module Axlsx
   class CustomFilters
     include Axlsx::OptionsParser
     include Axlsx::SerializedAttributes
+    include Accessors
 
     # Creates a new CustomFilters object
     # @param [Hash] options Options used to set this objects attributes and
     #                       create custom_filter_items.
-    # @option [Boolean] and @see and.
+    # @option [Boolean] and Value used to determine whether one or both conditions need to apply in order to be shown.
     # @option [Array] custom_filter_items An array of values that will be used to create custom_filter objects.
     # @note The recommended way to interact with custom_filter objects is via AutoFilter#add_column
     # @example
@@ -24,15 +25,14 @@ module Axlsx
       parse_options options
     end
 
+    # A list of serializable attributes.
     serializable_attributes :and
 
-    attr_reader :and
-    alias_method :logical_and, :and
+    # Boolean attribute accessors
+    boolean_attr_accessor :and
 
-    def and=(bool)
-      Axlsx.validate_boolean bool
-      @and = bool
-    end
+    # Alias needed for reader because `and` is a reserved keyword in Ruby
+    alias_method :logical_and, :and
 
     # Tells us if the row of the cell provided should be hidden as it
     # does not meet any or all (based on the logical_and boolean) of
