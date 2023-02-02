@@ -75,30 +75,30 @@ module Axlsx
       include Axlsx::OptionsParser
 
       COMPARATOR_METHOD_MAP = {
-        "lessThan"           => :<,
-        "lessThanOrEqual"    => :<=,
-        "equal"              => :==,
-        "notBlank"           => :!=,
-        "notEqual"           => :!=,
-        "greaterThanOrEqual" => :>=,
-        "greaterThan"        => :>,
-        "contains"           => :include?,
-        "notContains"        => :exclude?,
-        "beginsWith"         => :starts_with?,
-        "endsWith"           => :ends_with?,
+        lessThan:           :<,
+        lessThanOrEqual:    :<=,
+        equal:              :==,
+        notBlank:           :!=,
+        notEqual:           :!=,
+        greaterThanOrEqual: :>=,
+        greaterThan:        :>,
+        contains:           :include?,
+        notContains:        :exclude?,
+        beginsWith:         :starts_with?,
+        endsWith:           :ends_with?,
       }
       VALID_OPERATOR_MAP = {
-        "lessThan"           => "lessThan",
-        "lessThanOrEqual"    => "lessThanOrEqual",
-        "equal"              => "equal",
-        "notBlank"           => "notEqual",
-        "notEqual"           => "notEqual",
-        "greaterThanOrEqual" => "greaterThanOrEqual",
-        "greaterThan"        => "greaterThan",
-        "contains"           => "equal",
-        "notContains"        => "notEqual",
-        "beginsWith"         => "equal",
-        "endsWith"           => "equal",
+        lessThan:           "lessThan",
+        lessThanOrEqual:    "lessThanOrEqual",
+        equal:              "equal",
+        notBlank:           "notEqual",
+        notEqual:           "notEqual",
+        greaterThanOrEqual: "greaterThanOrEqual",
+        greaterThan:        "greaterThan",
+        contains:           "equal",
+        notContains:        "notEqual",
+        beginsWith:         "equal",
+        endsWith:           "equal",
       }
 
       def initialize(options={})
@@ -131,11 +131,11 @@ module Axlsx
       private
 
       def leading_wildcard
-        ["contains", "notContains", "endsWith"].include?(operator) ? "*" : ""
+        [:contains, :notContains, :endsWith].include?(operator) ? "*" : ""
       end
 
       def safe_val
-        if operator == "notBlank" && val.nil?
+        if operator == :notBlank && val.nil?
           " "
         else
           val.to_s
@@ -143,7 +143,7 @@ module Axlsx
       end
 
       def trailing_wildcard
-        ["contains", "notContains", "beginsWith"].include?(operator) ? "*" : ""
+        [:contains, :notContains, :beginsWith].include?(operator) ? "*" : ""
       end
     end
   end
