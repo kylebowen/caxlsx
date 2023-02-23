@@ -117,7 +117,7 @@ module Axlsx
 
       def apply(cell)
         return false unless cell
-        return false if cell.value.send(COMPARATOR_METHOD_MAP[operator], val)
+        return false if cell.value&.send(COMPARATOR_METHOD_MAP[operator], val)
 
         true
       end
