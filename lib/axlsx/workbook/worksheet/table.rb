@@ -35,6 +35,15 @@ module Axlsx
     # @return [TableStyle]
     attr_reader :style
 
+    attr_reader :sheet
+
+    def auto_filter
+      @auto_filter ||= begin
+                         @sheet.auto_filter = @ref
+                         @sheet.auto_filter
+                       end
+    end
+
     # The index of this chart in the workbooks charts collection
     # @return [Integer]
     def index
@@ -77,7 +86,7 @@ module Axlsx
       str << '<?xml version="1.0" encoding="UTF-8"?>'
       str << ('<table xmlns="' << XML_NS << '" id="' << (index+1).to_s << '" name="' << @name << '" displayName="' << @name.gsub(/\s/,'_') << '" ')
       str << ('ref="' << @ref << '" totalsRowShown="0">')
-      str << ('<autoFilter ref="' << @ref << '"/>')
+      auto_filter.to_xml_string(str)
       str << ('<tableColumns count="' << header_cells.length.to_s << '">')
       header_cells.each_with_index do |cell,index|
         str << ('<tableColumn id ="' << (index+1).to_s << '" name="' << cell.clean_value << '"/>')
