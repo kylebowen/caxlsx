@@ -75,17 +75,17 @@ module Axlsx
       include Axlsx::OptionsParser
 
       COMPARATOR_METHOD_MAP = {
-        lessThan:           :<,
-        lessThanOrEqual:    :<=,
-        equal:              :==,
-        notBlank:           :!=,
-        notEqual:           :!=,
-        greaterThanOrEqual: :>=,
-        greaterThan:        :>,
-        contains:           :include?,
-        notContains:        :exclude?,
-        beginsWith:         :starts_with?,
-        endsWith:           :ends_with?,
+        lessThan:           [:<, ->(v) { v }],
+        lessThanOrEqual:    [:<=, ->(v) { v }],
+        equal:              [:==, ->(v) { v }],
+        notBlank:           [:!=, ->(v) { v }],
+        notEqual:           [:!=, ->(v) { v }],
+        greaterThanOrEqual: [:>=, ->(v) { v }],
+        greaterThan:        [:>, ->(v) { v }],
+        contains:           [:match?, ->(v) { /#{v}/i }],
+        notContains:        [:match?, ->(v) { /^(?!.*#{v}).*$/i }],
+        beginsWith:         [:match?, ->(v) { /\A#{v}.*/i }],
+        endsWith:           [:match?, ->(v) { /.*#{v}\z/i }],
       }
       VALID_OPERATOR_MAP = {
         lessThan:           "lessThan",
@@ -117,7 +117,9 @@ module Axlsx
 
       def apply(cell)
         return false unless cell
-        return false if cell.value&.send(COMPARATOR_METHOD_MAP[operator], val)
+
+        method, formatter = COMPARATOR_METHOD_MAP[operator]
+        return false if cell.value&.send(method, formatter.call(val))
 
         true
       end
