@@ -62,9 +62,9 @@ module Axlsx
 
     def custom_filter_items=(values)
       values.each do |value|
-        if value[:operator] == "between"
-          custom_filter_items << CustomFilter.new(comparator: "greaterThanOrEqual", operator: "greaterThanOrEqual", val: value[:val][0])
-          custom_filter_items << CustomFilter.new(comparator: "lessThanOrEqual", operator: "lessThanOrEqual", val: value[:val][1])
+        if value[:operator] == :between
+          custom_filter_items << CustomFilter.new(comparator: :greaterThanOrEqual, operator: :greaterThanOrEqual, val: value[:val][0])
+          custom_filter_items << CustomFilter.new(comparator: :lessThanOrEqual, operator: :lessThanOrEqual, val: value[:val][1])
         else
           custom_filter_items << CustomFilter.new(value)
         end
