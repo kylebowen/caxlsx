@@ -86,7 +86,7 @@ module Axlsx
         notContains:        [:match?, ->(v) { /^(?!.*#{v}).*$/i }],
         beginsWith:         [:match?, ->(v) { /\A#{v}.*/i }],
         endsWith:           [:match?, ->(v) { /.*#{v}\z/i }],
-      }
+      }.freeze
       VALID_OPERATOR_MAP = {
         lessThan:           "lessThan",
         lessThanOrEqual:    "lessThanOrEqual",
@@ -99,7 +99,7 @@ module Axlsx
         notContains:        "notEqual",
         beginsWith:         "equal",
         endsWith:           "equal",
-      }
+      }.freeze
 
       def initialize(options={})
         raise ArgumentError, "You must specify an operator for the custom filter" unless options[:operator]
